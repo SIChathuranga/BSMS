@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Auth</title>
+</head>
+<body>
+    <h1>Admin Authentication Test</h1>
+    <div id="result"></div>
+
+    <script>
+        async function testAdminAuth() {
+            const username = 'admin';
+            const password = 'admin123';
+            const credentials = btoa(`${username}:${password}`);
+            
+            console.log('Testing credentials:', username, password);
+            console.log('Base64 encoded:', credentials);
+            
+            try {
+                const response = await fetch('http://localhost:8081/api/admin/products', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${credentials}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('result').innerHTML = `
+                        <p style="color: green;">✅ Authentication successful!</p>
+                        <p>Products found: ${data.length}</p>
+                        <pre>${JSON.stringify(data.slice(0, 2), null, 2)}</pre>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    document.getElementById('result').innerHTML = `
+                        <p style="color: red;">❌ Authentication failed!</p>
+                        <p>Status: ${response.status}</p>
+                        <p>Error: ${errorText}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <p style="color: red;">❌ Request failed!</p>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Test on page load
+        testAdminAuth();
+    </script>
+</body>
+</html>

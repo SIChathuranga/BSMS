@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script type="module">
+    import { authorizedFetch } from '../js/app.js';
+    
+    let currentUser = null;
+    
+    async function loadProfile() {
+      try {
+        const res = await authorizedFetch('http://localhost:8082/api/user/me');
+        currentUser = await res.json();
+        
+        // Display current info
+        document.getElementById('email').innerText = currentUser.email;
+        document.getElementById('name').innerText = currentUser.displayName || 'Not set';
+        
+        // Populate edit form
+        document.getElementById('editName').value = currentUser.displayName || '';
+        document.getElementById('editEmail').value = currentUser.email;
+        
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        document.getElementById('errorMsg').textContent = 'Error loading profile. Please make sure you\'re logged in.';
+      }
+    }
+    
+    async function updateProfile(e) {
+      e.preventDefault();
+      
+      const updatedProfile = {
+        displayName: document.getElementById('editName').value,
+        email: document.getElementById('editEmail').value
+      };
+      
+      try {
+        const res = await authorizedFetch('http://localhost:8082/api/user/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedProfile)
+        });
+        
+        if (res.ok) {
+          document.getElementById('successMsg').textContent = 'Profile updated successfully!';
+          document.getElementById('successMsg').classList.remove('d-none');
+          setTimeout(() => {
+            document.getElementById('successMsg').classList.add('d-none');
+          }, 3000);
+          
+          // Reload profile data
+          loadProfile();
+        } else {
+          throw new Error('Failed to update profile');
+        }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        document.getElementById('errorMsg').textContent = 'Error updating profile. Please try again.';
+      }
+    }
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('editForm').addEventListener('submit', updateProfile);
+      loadProfile();
+    });
+  </script>
+</head>
+<body class="container py-4">
+  <div class="row">
+    <div class="col-md-8">
+      <h1>My Profile</h1>
+      
+      <div id="errorMsg" class="alert alert-danger d-none"></div>
+      <div id="successMsg" class="alert alert-success d-none"></div>
+      
+      <!-- Current Profile Display -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Current Profile Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-sm-3"><strong>Email:</strong></div>
+            <div class="col-sm-9" id="email">Loading...</div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-sm-3"><strong>Display Name:</strong></div>
+            <div class="col-sm-9" id="name">Loading...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Edit Profile Form -->
+      <div class="card">
+        <div class="card-header">
+          <h5>Edit Profile</h5>
+        </div>
+        <div class="card-body">
+          <form id="editForm">
+            <div class="mb-3">
+              <label for="editEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="editEmail" readonly>
+              <div class="form-text">Email cannot be changed as it's linked to your Google account.</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="editName" class="form-label">Display Name</label>
+              <input type="text" class="form-control" id="editName" placeholder="Enter your display name">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+            <a href="../index.html" class="btn btn-secondary">Back to Home</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

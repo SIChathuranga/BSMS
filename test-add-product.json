@@ -1,0 +1,8 @@
+{
+  "name": "Test Brake Disc",
+  "description": "High-performance brake disc for sport motorcycles",
+  "price": 89.99,
+  "stock": 15,
+  "category": "brake",
+  "images": ["https://images.unsplash.com/photo-1558618047-3c2c8e01c66b?w=400"]
+}

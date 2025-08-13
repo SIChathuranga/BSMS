@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Google Authentication</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-container { max-width: 600px; margin: 0 auto; }
+        .test-result { margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 10px 0; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Google Authentication Test</h1>
+        
+        <div class="test-result info">
+            <h3>Status:</h3>
+            <p id="authStatus">Not authenticated</p>
+        </div>
+        
+        <button id="loginBtn">Login with Google</button>
+        <button id="logoutBtn" style="display: none;">Logout</button>
+        <button id="testApiBtn" style="display: none;">Test Authenticated API</button>
+        
+        <div id="userInfo" style="display: none;" class="test-result success">
+            <h3>User Information:</h3>
+            <p><strong>Name:</strong> <span id="userName"></span></p>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <p><strong>Firebase UID:</strong> <span id="userUid"></span></p>
+        </div>
+        
+        <div id="apiResult" class="test-result" style="display: none;">
+            <h3>API Test Result:</h3>
+            <pre id="apiOutput"></pre>
+        </div>
+        
+        <div id="tokenInfo" class="test-result" style="display: none;">
+            <h3>Firebase Token:</h3>
+            <textarea id="tokenValue" rows="6" cols="80" readonly></textarea>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        // Firebase config
+        const firebaseConfig = {
+          apiKey: "AIzaSyCeQB04PkgVJ7lXveCMF0g83uIJtZr49wA",
+          authDomain: "bsms-project.firebaseapp.com",
+          projectId: "bsms-project",
+          storageBucket: "bsms-project.appspot.com",
+          messagingSenderId: "889312176803",
+          appId: "1:889312176803:web:a1aa50b15058ffd7f66d16",
+          measurementId: "G-L740JC7MME"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const testApiBtn = document.getElementById('testApiBtn');
+        const authStatus = document.getElementById('authStatus');
+        const userInfo = document.getElementById('userInfo');
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const userUid = document.getElementById('userUid');
+        const apiResult = document.getElementById('apiResult');
+        const apiOutput = document.getElementById('apiOutput');
+        const tokenInfo = document.getElementById('tokenInfo');
+        const tokenValue = document.getElementById('tokenValue');
+
+        loginBtn.addEventListener('click', async () => {
+            try {
+                console.log('Attempting Google sign-in...');
+                const result = await signInWithPopup(auth, provider);
+                console.log('Login successful:', result.user);
+            } catch (error) {
+                console.error('Login failed:', error);
+                authStatus.textContent = `Login failed: ${error.message}`;
+                authStatus.className = 'test-result error';
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log('Logout successful');
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+
+        testApiBtn.addEventListener('click', async () => {
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    apiOutput.textContent = 'No authenticated user';
+                    apiResult.style.display = 'block';
+                    return;
+                }
+
+                const token = await user.getIdToken();
+                console.log('Testing API with token...');
+
+                // Test public API first
+                const publicRes = await fetch('http://localhost:8082/api/public/products');
+                const publicData = await publicRes.json();
+                
+                // Test authenticated API
+                const authRes = await fetch('http://localhost:8082/api/user/orders', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const result = {
+                    publicApiStatus: publicRes.status,
+                    publicApiData: publicData.length ? `${publicData.length} products found` : 'No products',
+                    authApiStatus: authRes.status,
+                    authApiMessage: authRes.ok ? 'Authentication successful' : await authRes.text()
+                };
+
+                apiOutput.textContent = JSON.stringify(result, null, 2);
+                apiResult.className = authRes.ok ? 'test-result success' : 'test-result error';
+                apiResult.style.display = 'block';
+
+            } catch (error) {
+                console.error('API test failed:', error);
+                apiOutput.textContent = `API test failed: ${error.message}`;
+                apiResult.className = 'test-result error';
+                apiResult.style.display = 'block';
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                authStatus.textContent = 'Authenticated';
+                authStatus.className = 'test-result success';
+                
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+                testApiBtn.style.display = 'inline-block';
+                
+                userName.textContent = user.displayName || 'N/A';
+                userEmail.textContent = user.email || 'N/A';
+                userUid.textContent = user.uid || 'N/A';
+                userInfo.style.display = 'block';
+                
+                try {
+                    const token = await user.getIdToken();
+                    tokenValue.textContent = token;
+                    tokenInfo.style.display = 'block';
+                } catch (error) {
+                    console.error('Failed to get token:', error);
+                }
+            } else {
+                authStatus.textContent = 'Not authenticated';
+                authStatus.className = 'test-result info';
+                
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+                testApiBtn.style.display = 'none';
+                userInfo.style.display = 'none';
+                tokenInfo.style.display = 'none';
+                apiResult.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
