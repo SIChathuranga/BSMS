@@ -2,7 +2,7 @@
 
 A modern, full-stack e-commerce platform for motorbike spare parts built with Spring Boot, Firestore, and a responsive Vanilla JS frontend.
 
-![BSMS Hero](https://images.unsplash.com/photo-1558981806-ec527fa84f3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80)
+![BSMS Hero](https://th.bing.com/th/id/R.0b16a2a9eefb8bb522b8f647dac72606?rik=NxwME3we0lSCbw&riu=http%3a%2f%2fgetwallpapers.com%2fwallpaper%2ffull%2f3%2fb%2f8%2f530103.jpg&ehk=eM2BnXDN8bwQujwK9Zsuel1OYDEhRvJrmPNAB076JxY%3d&risl=&pid=ImgRaw&r=0)
 
 ## ✨ Features
 
@@ -189,4 +189,6 @@ This project is licensed under the MIT License.
 
 ## 👥 Authors
 
-- **SIChathuranga** - *Developer*
+- **SIChathuranga** - *All Rights Reserved*
+
+Made with ❤️ for Motorbike Lovers
