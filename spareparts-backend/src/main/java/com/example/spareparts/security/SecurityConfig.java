@@ -33,10 +33,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/health", "/api/public/**", "/v3/api-docs/**", "/swagger-ui/**", "/h2-console/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
+                        // Public endpoints
+                        .requestMatchers("/health", "/api/public/**", "/api/v2/public/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/h2-console/**").permitAll()
+                        // Admin endpoints
+                        .requestMatchers("/api/admin/**", "/api/v2/admin/**").hasRole("ADMIN")
+                        // User endpoints - authenticated
+                        .requestMatchers("/api/user/**", "/api/v2/user/**").authenticated()
+                        .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults());
 
         http.addFilterBefore(tokenAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -55,7 +59,7 @@ public class SecurityConfig {
                 .password(passwordEncoder().encode("admin123"))
                 .roles("USER", "ADMIN")
                 .build();
-        
+
         UserDetails apiUser = User.builder()
                 .username("apiuser")
                 .password(passwordEncoder().encode("password123"))

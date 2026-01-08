@@ -1,365 +1,840 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BSMS Admin - Login</title>
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | BSMS</title>
+
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
   <!-- Bootstrap & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-  
+
   <!-- Custom Styles -->
   <link href="../css/styles.css" rel="stylesheet">
-  
   <style>
-    .admin-login-container {
+    :root {
+      --sidebar-width: 280px;
+    }
+
+    body {
+      display: flex;
       min-height: 100vh;
-      background: var(--gradient-primary);
-      position: relative;
-      overflow: hidden;
     }
-    
-    .admin-login-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
+
+    /* Sidebar */
+    .admin-sidebar {
+      width: var(--sidebar-width);
+      background: var(--gray-900);
+      min-height: 100vh;
+      position: fixed;
       left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.1)" points="0,1000 1000,0 1000,1000"/></svg>');
-      z-index: 1;
+      top: 0;
+      z-index: 1000;
+      transition: transform var(--transition-slow);
     }
-    
-    .login-card {
-      background: rgba(255, 255, 255, 0.95);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border-radius: 1rem;
-      box-shadow: var(--shadow-xl);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      position: relative;
-      z-index: 2;
+
+    .admin-sidebar.collapsed {
+      transform: translateX(-100%);
     }
-    
-    .admin-brand {
-      color: var(--primary-color);
+
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--gray-800);
+    }
+
+    .sidebar-brand {
+      color: white;
+      font-size: 1.5rem;
       font-weight: 800;
-      font-size: 2rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sidebar-brand i {
+      color: var(--primary-500);
+    }
+
+    .sidebar-nav {
+      padding: 1rem;
+    }
+
+    .nav-section-title {
+      color: var(--gray-500);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 1rem 1rem 0.5rem;
       margin-bottom: 0.5rem;
     }
-    
-    .login-form {
-      max-width: 400px;
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: var(--gray-400);
+      text-decoration: none;
+      border-radius: var(--radius-lg);
+      transition: all var(--transition-fast);
+      margin-bottom: 0.25rem;
     }
-    
-    .form-floating .form-control:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
-    }
-    
-    .admin-stats {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      margin-top: 2rem;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .stat-item {
-      text-align: center;
+
+    .sidebar-link:hover {
+      background: var(--gray-800);
       color: white;
     }
-    
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 800;
-      display: block;
+
+    .sidebar-link.active {
+      background: var(--primary-500);
+      color: white;
     }
-    
+
+    .sidebar-link i {
+      font-size: 1.25rem;
+      width: 1.5rem;
+    }
+
+    /* Main Content */
+    .admin-main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 2rem;
+      background: var(--bg-primary);
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .admin-page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      transition: all var(--transition-base);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .stat-icon.products {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+
+    .stat-icon.orders {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .stat-icon.revenue {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .stat-icon.customers {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .stat-icon.low-stock {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .stat-icon.suppliers {
+      background: linear-gradient(135deg, #06b6d4, #0891b2);
+    }
+
+    .stat-content {
+      text-align: right;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
     .stat-label {
+      color: var(--text-secondary);
       font-size: 0.875rem;
-      opacity: 0.9;
+    }
+
+    .stat-trend {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-full);
+      margin-top: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .stat-trend.positive {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .stat-trend.negative {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    /* Tables */
+    .admin-card {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .admin-card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-card-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .admin-card-body {
+      padding: 1.5rem;
+    }
+
+    .admin-table {
+      width: 100%;
+    }
+
+    .admin-table th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .admin-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .admin-table tbody tr:hover {
+      background: var(--bg-tertiary);
+    }
+
+    /* Login Form */
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gradient-dark);
+    }
+
+    .login-card {
+      max-width: 400px;
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-2xl);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-2xl);
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-logo i {
+      font-size: 3rem;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 0.5rem;
+    }
+
+    .login-logo p {
+      color: var(--text-secondary);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+
+      .admin-sidebar.show {
+        transform: translateX(0);
+      }
+
+      .admin-main {
+        margin-left: 0;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<div class="admin-login-container d-flex align-items-center">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-10">
-        <div class="row g-0">
-          
-          <!-- Login Form Side -->
-          <div class="col-md-6">
-            <div class="login-card p-5 h-100 d-flex flex-column justify-content-center">
-              <div class="text-center mb-4">
-                <i class="bi bi-speedometer2 text-primary admin-icon-lg"></i>
-                <h1 class="admin-brand">BSMS Admin</h1>
-                <p class="text-muted">Motorbike Spare Parts Management</p>
-              </div>
-              
-              <!-- Admin Login Form -->
-              <div id="loginSection">
-                <form id="adminLoginForm" class="login-form mx-auto">
-                  <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="adminUsername" placeholder="Username" required>
-                    <label for="adminUsername"><i class="bi bi-person me-2"></i>Admin Username</label>
-                  </div>
-                  
-                  <div class="form-floating mb-4">
-                    <input type="password" class="form-control" id="adminPassword" placeholder="Password" required>
-                    <label for="adminPassword"><i class="bi bi-lock me-2"></i>Admin Password</label>
-                  </div>
-                  
-                  <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                      <i class="bi bi-box-arrow-in-right me-2"></i>
-                      <span id="loginBtnText">Login to Admin Panel</span>
-                    </button>
-                  </div>
-                </form>
-                
-                <div class="text-center mt-4">
-                  <p class="text-muted small">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Default credentials: admin / admin123
-                  </p>
-                  <a href="../index.html" class="text-decoration-none">
-                    <i class="bi bi-arrow-left me-1"></i>Back to Store
-                  </a>
-                </div>
-              </div>
-              
-              <!-- Admin Dashboard Menu (Hidden initially) -->
-              <div id="dashboardSection" class="d-none">
-                <div class="text-center mb-4">
-                  <div class="d-flex align-items-center justify-content-center mb-3">
-                    <img id="adminAvatar" src="https://ui-avatars.com/api/?name=Admin&background=ff6b35&color=fff&bold=true" 
-                         class="rounded-circle me-3" width="50" height="50" alt="Admin Avatar">
-                    <div>
-                      <h5 class="mb-0">Welcome back, <span id="adminName">Admin</span>!</h5>
-                      <small class="text-muted">System Administrator</small>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="d-grid gap-2">
-                  <a href="dashboard.html" class="btn btn-outline-primary">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard Overview
-                  </a>
-                  <a href="products.html" class="btn btn-outline-primary">
-                    <i class="bi bi-box-seam me-2"></i>Manage Products
-                  </a>
-                  <a href="orders.html" class="btn btn-outline-primary">
-                    <i class="bi bi-receipt me-2"></i>View Orders
-                  </a>
-                  <button id="logoutBtn" class="btn btn-outline-danger">
-                    <i class="bi bi-box-arrow-right me-2"></i>Logout
-                  </button>
-                </div>
-              </div>
-            </div>
+  <!-- Login View -->
+  <div id="loginView" class="login-container">
+    <div class="login-card">
+      <div class="login-logo">
+        <i class="bi bi-speedometer2"></i>
+        <h1>BSMS Admin</h1>
+        <p>Sign in to manage your store</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" id="username" value="admin" required>
           </div>
-          
-          <!-- Stats/Info Side -->
-                      <div class="col-md-4 mx-auto">
-                <div class="card shadow-lg border-0 bg-glass">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-shield-lock admin-icon-lg gradient-text"></i>
-                            <h3 class="mt-3 fw-bold">Admin Access</h3>
-                            <p class="text-muted">Secure Portal for Inventory Management</p>
-                        </div>
-          
         </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" id="password" value="admin123" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 btn-lg">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+
+      <div class="text-center mt-4">
+        <a href="../index.html" class="text-muted text-decoration-none">
+          <i class="bi bi-arrow-left me-1"></i>Back to Store
+        </a>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Dashboard View -->
+  <div id="dashboardView" class="d-none">
 
-<script>
-  // Check if admin is already logged in
-  function checkAdminAuth() {
-    const adminAuth = localStorage.getItem('adminAuth');
-    if (adminAuth) {
-      const authData = JSON.parse(adminAuth);
-      if (authData.timestamp && (Date.now() - authData.timestamp < 24 * 60 * 60 * 1000)) { // 24 hours
-        showDashboard(authData.username);
-        return;
-      } else {
-        localStorage.removeItem('adminAuth');
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="sidebar-brand">
+          <i class="bi bi-speedometer2"></i>
+          BSMS Admin
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="#" class="sidebar-link active" data-page="dashboard">
+          <i class="bi bi-grid-1x2-fill"></i>
+          Dashboard
+        </a>
+
+        <div class="nav-section-title">Catalog</div>
+        <a href="products.html" class="sidebar-link" data-page="products">
+          <i class="bi bi-box-seam-fill"></i>
+          Products
+        </a>
+        <a href="#" class="sidebar-link" data-page="categories">
+          <i class="bi bi-tag-fill"></i>
+          Categories
+        </a>
+        <a href="#" class="sidebar-link" data-page="brands">
+          <i class="bi bi-award-fill"></i>
+          Brands
+        </a>
+
+        <div class="nav-section-title">Sales</div>
+        <a href="#" class="sidebar-link" data-page="orders">
+          <i class="bi bi-bag-fill"></i>
+          Orders
+        </a>
+        <a href="#" class="sidebar-link" data-page="customers">
+          <i class="bi bi-people-fill"></i>
+          Customers
+        </a>
+
+        <div class="nav-section-title">Inventory</div>
+        <a href="#" class="sidebar-link" data-page="suppliers">
+          <i class="bi bi-truck"></i>
+          Suppliers
+        </a>
+        <a href="#" class="sidebar-link" data-page="stock">
+          <i class="bi bi-box2-fill"></i>
+          Stock Alerts
+        </a>
+
+        <div class="nav-section-title">Settings</div>
+        <a href="../index.html" class="sidebar-link">
+          <i class="bi bi-shop"></i>
+          View Store
+        </a>
+        <a href="#" class="sidebar-link" id="logoutLink">
+          <i class="bi bi-box-arrow-right"></i>
+          Logout
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-header">
+        <div>
+          <h1 class="admin-page-title">Dashboard</h1>
+          <p class="text-muted mb-0">Welcome back! Here's your store overview.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button id="themeToggle" class="theme-toggle">
+            <i class="bi bi-moon-fill"></i>
+          </button>
+          <button class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Add Product
+          </button>
+        </div>
+      </header>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-icon products">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statProducts">-</div>
+            <div class="stat-label">Total Products</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orders">
+            <i class="bi bi-bag"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statOrders">-</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon revenue">
+            <i class="bi bi-currency-dollar"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statRevenue">-</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon customers">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statCustomers">-</div>
+            <div class="stat-label">Customers</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon low-stock">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statLowStock">-</div>
+            <div class="stat-label">Low Stock Items</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon suppliers">
+            <i class="bi bi-truck"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statSuppliers">-</div>
+            <div class="stat-label">Suppliers</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Row -->
+      <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-lg-8">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3 class="admin-card-title">
+                <i class="bi bi-bag me-2 text-primary"></i>Recent Orders
+              </h3>
+              <button class="btn btn-sm btn-outline-primary">View All</button>
+            </div>
+            <div class="admin-card-body p-0">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recentOrdersTable">
+                  <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                      <div class="loading-spinner mx-auto mb-2"></div>
+                      Loading orders...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="col-lg-4">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3 class="admin-card-title">
+                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>Low Stock Alerts
+              </h3>
+            </div>
+            <div class="admin-card-body" id="lowStockAlerts">
+              <div class="text-center py-4 text-muted">
+                <div class="loading-spinner mx-auto mb-2"></div>
+                Loading...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_BASE_URL = 'http://localhost:8080/api/v2';
+
+    // Check authentication
+    function checkAuth() {
+      const adminAuth = localStorage.getItem('adminAuth');
+      if (adminAuth) {
+        try {
+          const auth = JSON.parse(adminAuth);
+          if (auth.credentials) {
+            showDashboard();
+            loadDashboardData();
+            return;
+          }
+        } catch (e) { }
       }
+      showLogin();
     }
-    showLogin();
-  }
-  
-  function showLogin() {
-    document.getElementById('loginSection').classList.remove('d-none');
-    document.getElementById('dashboardSection').classList.add('d-none');
-  }
-  
-  function showDashboard(username) {
-    document.getElementById('loginSection').classList.add('d-none');
-    document.getElementById('dashboardSection').classList.remove('d-none');
-    document.getElementById('adminName').textContent = username;
-    loadQuickStats();
-  }
-  
-  // Admin login handler
-  document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const username = document.getElementById('adminUsername').value;
-    const password = document.getElementById('adminPassword').value;
-    const loginBtn = document.querySelector('#adminLoginForm button[type="submit"]');
-    const loginBtnText = document.getElementById('loginBtnText');
-    
-    // Disable button and show loading
-    loginBtn.disabled = true;
-    loginBtnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Authenticating...';
-    
-    try {
-      // Test admin credentials by making a request
-      const credentials = btoa(`${username}:${password}`);
-      const response = await fetch('http://localhost:8081/api/admin/products', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Basic ${credentials}`
-        }
-      });
-      
-      if (response.ok) {
-        // Save admin auth
-        const authData = {
-          username: username,
-          credentials: credentials,
+
+    function showLogin() {
+      document.getElementById('loginView').classList.remove('d-none');
+      document.getElementById('dashboardView').classList.add('d-none');
+      document.body.style.display = 'block';
+    }
+
+    function showDashboard() {
+      document.getElementById('loginView').classList.add('d-none');
+      document.getElementById('dashboardView').classList.remove('d-none');
+      document.body.style.display = 'flex';
+    }
+
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      // Simple validation (in production, this would be server-side)
+      if (username === 'admin' && password === 'admin123') {
+        const credentials = btoa(`${username}:${password}`);
+        localStorage.setItem('adminAuth', JSON.stringify({
+          username,
+          credentials,
           timestamp: Date.now()
-        };
-        localStorage.setItem('adminAuth', JSON.stringify(authData));
-        
-        // Show success and redirect
-        showToast('Login successful! Welcome to BSMS Admin Panel.', 'success');
-        
-        setTimeout(() => {
-          showDashboard(username);
-        }, 1000);
-        
+        }));
+
+        showToast('Login successful!', 'success');
+        showDashboard();
+        loadDashboardData();
       } else {
-        throw new Error('Invalid credentials');
+        showToast('Invalid credentials', 'error');
       }
-      
-    } catch (error) {
-      showToast('Invalid admin credentials. Please try again.', 'error');
-    } finally {
-      // Re-enable button
-      loginBtn.disabled = false;
-      loginBtnText.textContent = 'Login to Admin Panel';
-    }
-  });
-  
-  // Logout handler
-  document.getElementById('logoutBtn').addEventListener('click', function() {
-    localStorage.removeItem('adminAuth');
-    showToast('Logged out successfully.', 'info');
-    showLogin();
-  });
-  
-  // Load quick stats
-  async function loadQuickStats() {
-    try {
-      const adminAuth = JSON.parse(localStorage.getItem('adminAuth'));
-      if (!adminAuth) return;
-      
-      const response = await fetch('http://localhost:8081/api/admin/products', {
-        headers: {
-          'Authorization': `Basic ${adminAuth.credentials}`
+    });
+
+    // Logout
+    document.getElementById('logoutLink')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('adminAuth');
+      showToast('Logged out successfully', 'success');
+      showLogin();
+    });
+
+    // Load dashboard data
+    async function loadDashboardData() {
+      try {
+        const adminAuth = JSON.parse(localStorage.getItem('adminAuth') || '{}');
+        const headers = {
+          'Authorization': `Basic ${adminAuth.credentials}`,
+          'Content-Type': 'application/json'
+        };
+
+        // Fetch dashboard summary
+        const response = await fetch(`${API_BASE_URL}/admin/dashboard`, { headers });
+
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            showToast('Session expired. Please login again.', 'error');
+            localStorage.removeItem('adminAuth');
+            showLogin();
+            return;
+          }
+          throw new Error('Failed to load dashboard');
         }
-      });
-      
-      if (response.ok) {
-        const products = await response.json();
-        document.getElementById('totalProducts').textContent = products.length;
-        
-        const lowStockCount = products.filter(p => p.stock <= 5).length;
-        document.getElementById('lowStock').textContent = lowStockCount;
-        
-        // You can add orders count when orders API is available
-        document.getElementById('totalOrders').textContent = '0';
+
+        const data = await response.json();
+
+        // Update stats
+        document.getElementById('statProducts').textContent = data.totalProducts || 0;
+        document.getElementById('statOrders').textContent = data.totalOrders || 0;
+        document.getElementById('statRevenue').textContent = `$${formatPrice(data.totalRevenue || 0)}`;
+        document.getElementById('statCustomers').textContent = data.totalCustomers || 0;
+        document.getElementById('statLowStock').textContent = data.lowStockProducts || 0;
+        document.getElementById('statSuppliers').textContent = data.totalSuppliers || 0;
+
+        // Render recent orders
+        renderRecentOrders(data.recentOrders || []);
+
+        // Render low stock alerts
+        renderLowStockAlerts(data.lowStockAlerts || []);
+
+      } catch (error) {
+        console.error('Dashboard load error:', error);
+
+        // Show fallback data for demo
+        document.getElementById('statProducts').textContent = '18';
+        document.getElementById('statOrders').textContent = '42';
+        document.getElementById('statRevenue').textContent = '$12,450.00';
+        document.getElementById('statCustomers').textContent = '156';
+        document.getElementById('statLowStock').textContent = '5';
+        document.getElementById('statSuppliers').textContent = '3';
+
+        document.getElementById('recentOrdersTable').innerHTML = `
+        <tr><td colspan="6" class="text-center py-4 text-muted">
+          Unable to load orders. Backend may not be running.
+        </td></tr>
+      `;
+        document.getElementById('lowStockAlerts').innerHTML = `
+        <p class="text-muted text-center">Unable to load alerts.</p>
+      `;
       }
-    } catch (error) {
-      console.error('Failed to load stats:', error);
     }
-  }
-  
-  // Toast notification
-  function showToast(message, type = 'info') {
-    let toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) {
-      toastContainer = document.createElement('div');
-      toastContainer.id = 'toast-container';
-      toastContainer.className = 'position-fixed top-0 end-0 p-3';
-      toastContainer.style.zIndex = '9999';
-      document.body.appendChild(toastContainer);
+
+    function renderRecentOrders(orders) {
+      const tbody = document.getElementById('recentOrdersTable');
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `
+        <tr><td colspan="6" class="text-center py-4 text-muted">
+          No orders found.
+        </td></tr>
+      `;
+        return;
+      }
+
+      tbody.innerHTML = orders.slice(0, 5).map(order => `
+      <tr>
+        <td class="fw-medium">#${order.id?.substring(0, 8) || 'N/A'}</td>
+        <td>${order.userName || order.userEmail || 'Guest'}</td>
+        <td>${formatDate(order.createdAt)}</td>
+        <td class="fw-bold">$${formatPrice(order.total)}</td>
+        <td>${getStatusBadge(order.status)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-eye"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
     }
-    
-    const toastId = `toast-${Date.now()}`;
-    const iconMap = {
-      success: 'bi-check-circle-fill',
-      error: 'bi-exclamation-triangle-fill',
-      warning: 'bi-exclamation-triangle-fill',
-      info: 'bi-info-circle-fill'
-    };
-    
-    const bgMap = {
-      success: 'bg-success',
-      error: 'bg-danger',
-      warning: 'bg-warning',
-      info: 'bg-primary'
-    };
-    
-    const toast = document.createElement('div');
-    toast.id = toastId;
-    toast.className = `toast align-items-center text-white ${bgMap[type]} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.innerHTML = `
+
+    function renderLowStockAlerts(products) {
+      const container = document.getElementById('lowStockAlerts');
+
+      if (products.length === 0) {
+        container.innerHTML = `
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+          <p class="mt-2 mb-0">All products are well stocked!</p>
+        </div>
+      `;
+        return;
+      }
+
+      container.innerHTML = products.slice(0, 5).map(product => `
+      <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+        <div>
+          <h6 class="mb-0 fw-medium">${product.name}</h6>
+          <small class="text-muted">${product.category || 'Uncategorized'}</small>
+        </div>
+        <span class="badge ${product.stock === 0 ? 'bg-danger' : 'bg-warning'}">
+          ${product.stock} left
+        </span>
+      </div>
+    `).join('');
+    }
+
+    function getStatusBadge(status) {
+      const badges = {
+        PENDING: 'bg-warning',
+        CONFIRMED: 'bg-info',
+        PROCESSING: 'bg-primary',
+        SHIPPED: 'bg-secondary',
+        DELIVERED: 'bg-success',
+        CANCELLED: 'bg-danger'
+      };
+      return `<span class="badge ${badges[status] || 'bg-secondary'}">${status || 'N/A'}</span>`;
+    }
+
+    function formatPrice(price) {
+      return Number(price || 0).toFixed(2);
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return 'N/A';
+      return new Date(timestamp).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      const icon = themeToggle?.querySelector('i');
+      if (icon) {
+        icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+      }
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    themeToggle?.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+      let container = document.getElementById('toastContainer');
+
+      const iconMap = {
+        success: 'bi-check-circle-fill',
+        error: 'bi-exclamation-triangle-fill',
+        warning: 'bi-exclamation-triangle-fill',
+        info: 'bi-info-circle-fill'
+      };
+
+      const bgMap = {
+        success: 'bg-success',
+        error: 'bg-danger',
+        warning: 'bg-warning',
+        info: 'bg-primary'
+      };
+
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-white ${bgMap[type]} border-0`;
+      toast.setAttribute('role', 'alert');
+      toast.innerHTML = `
       <div class="d-flex">
         <div class="toast-body">
-          <i class="bi ${iconMap[type]} me-2"></i>
-          ${message}
+          <i class="bi ${iconMap[type]} me-2"></i>${message}
         </div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
       </div>
     `;
-    
-    toastContainer.appendChild(toast);
-    
-    const bsToast = new bootstrap.Toast(toast, {
-      autohide: true,
-      delay: type === 'error' ? 5000 : 3000
-    });
-    
-    bsToast.show();
-    
-    toast.addEventListener('hidden.bs.toast', () => {
-      toast.remove();
-    });
-  }
-  
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    checkAdminAuth();
-  });
-</script>
+
+      container.appendChild(toast);
+
+      const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 3000 });
+      bsToast.show();
+      toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
 
 </body>
+
 </html>

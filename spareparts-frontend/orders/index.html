@@ -1,28 +1,547 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Orders</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script type="module">
-    import { authorizedFetch } from '../js/app.js';
-    async function load() {
-      const res = await authorizedFetch('http://localhost:8082/api/user/orders');
-      const orders = await res.json();
-      const tbody = document.getElementById('tbody');
-      tbody.innerHTML = orders.map(o => `
-        <tr><td>${o.id}</td><td>${o.status}</td><td>${o.total}</td><td>${new Date(o.createdAt).toLocaleString()}</td></tr>
-      `).join('');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders | BSMS</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Custom Styles -->
+  <link href="../css/styles.css" rel="stylesheet">
+  <style>
+    .orders-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
     }
-    load();
-  </script>
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .order-card {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      transition: all var(--transition-base);
+    }
+
+    .order-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .order-header {
+      background: var(--bg-tertiary);
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-id {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .order-date {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .order-body {
+      padding: 1.5rem;
+    }
+
+    .order-item {
+      display: flex;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-item:last-child {
+      border-bottom: none;
+    }
+
+    .order-item-image {
+      width: 70px;
+      height: 70px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      background: var(--bg-tertiary);
+    }
+
+    .order-item-details {
+      flex: 1;
+    }
+
+    .order-item-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .order-item-qty {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .order-item-price {
+      font-weight: 700;
+      color: var(--primary-500);
+    }
+
+    .order-footer {
+      background: var(--bg-tertiary);
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .order-total {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-confirmed {
+      background: #cce5ff;
+      color: #004085;
+    }
+
+    .status-processing {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-shipped {
+      background: #e2e3e5;
+      color: #383d41;
+    }
+
+    .status-delivered {
+      background: #d1e7dd;
+      color: #0a3622;
+    }
+
+    .status-cancelled {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .progress-tracker {
+      display: flex;
+      justify-content: space-between;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+
+    .progress-tracker::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--border-color);
+      z-index: 0;
+    }
+
+    .progress-step {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+
+    .step-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      border: 3px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.5rem;
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      transition: all var(--transition-base);
+    }
+
+    .step-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .progress-step.completed .step-icon {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .progress-step.completed .step-label {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .progress-step.active .step-icon {
+      background: var(--primary-500);
+      border-color: var(--primary-500);
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    .progress-step.active .step-label {
+      color: var(--primary-500);
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+      font-size: 5rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 576px) {
+
+      .order-header,
+      .order-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .progress-step {
+        display: none;
+      }
+
+      .progress-step.active,
+      .progress-step:first-child,
+      .progress-step:last-child {
+        display: block;
+      }
+    }
+  </style>
 </head>
-<body class="container py-4">
-  <h1>My Orders</h1>
-  <table class="table">
-    <thead><tr><th>ID</th><th>Status</th><th>Total</th><th>Created</th></tr></thead>
-    <tbody id="tbody"></tbody>
-  </table>
+
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="../index.html">
+        <i class="bi bi-speedometer2"></i>
+        BSMS
+      </a>
+
+      <div class="d-flex align-items-center gap-2">
+        <a href="../index.html" class="btn btn-outline-primary">
+          <i class="bi bi-arrow-left me-1"></i>Back to Store
+        </a>
+        <button id="themeToggle" class="theme-toggle">
+          <i class="bi bi-moon-fill"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="orders-container">
+    <div class="page-header">
+      <h1 class="page-title">
+        <i class="bi bi-bag-check me-2 text-primary"></i>My Orders
+      </h1>
+      <p class="text-muted">Track and manage your orders</p>
+    </div>
+
+    <!-- Login Required -->
+    <div id="loginRequired" class="empty-state">
+      <i class="bi bi-person-lock empty-icon"></i>
+      <h3>Login Required</h3>
+      <p class="text-muted">Please sign in to view your orders.</p>
+      <a href="../index.html" class="btn btn-primary">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+      </a>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="text-center py-5 d-none">
+      <div class="loading-spinner mx-auto mb-3"></div>
+      <p class="text-muted">Loading your orders...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state d-none">
+      <i class="bi bi-bag-x empty-icon"></i>
+      <h3>No Orders Yet</h3>
+      <p class="text-muted">You haven't placed any orders yet. Start shopping!</p>
+      <a href="../index.html#products" class="btn btn-primary">
+        <i class="bi bi-shop me-1"></i>Browse Products
+      </a>
+    </div>
+
+    <!-- Orders List -->
+    <div id="ordersList" class="d-none"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      getIdToken
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCeQB04PkgVJ7lXveCMF0g83uIJtZr49wA",
+      authDomain: "bsms-project.firebaseapp.com",
+      projectId: "bsms-project",
+      storageBucket: "bsms-project.appspot.com",
+      messagingSenderId: "889312176803",
+      appId: "1:889312176803:web:a1aa50b15058ffd7f66d16"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const API_BASE_URL = 'http://localhost:8080/api/v2';
+
+    // Elements
+    const loginRequired = document.getElementById('loginRequired');
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const ordersList = document.getElementById('ordersList');
+
+    // Auth state listener
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        loginRequired.classList.add('d-none');
+        loadingState.classList.remove('d-none');
+        await loadOrders(user);
+      } else {
+        loginRequired.classList.remove('d-none');
+        loadingState.classList.add('d-none');
+        emptyState.classList.add('d-none');
+        ordersList.classList.add('d-none');
+      }
+    });
+
+    async function loadOrders(user) {
+      try {
+        const token = await getIdToken(user, true);
+        const response = await fetch(`${API_BASE_URL}/user/orders/${user.uid}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to load orders');
+
+        const orders = await response.json();
+
+        loadingState.classList.add('d-none');
+
+        if (orders.length === 0) {
+          emptyState.classList.remove('d-none');
+          ordersList.classList.add('d-none');
+        } else {
+          emptyState.classList.add('d-none');
+          ordersList.classList.remove('d-none');
+          renderOrders(orders);
+        }
+
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        loadingState.classList.add('d-none');
+        emptyState.classList.remove('d-none');
+        showToast('Failed to load orders', 'error');
+      }
+    }
+
+    function renderOrders(orders) {
+      ordersList.innerHTML = orders.map(order => `
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="order-id">Order #${order.id?.substring(0, 8) || 'N/A'}</div>
+            <div class="order-date">Placed on ${formatDate(order.createdAt)}</div>
+          </div>
+          <span class="status-badge status-${order.status?.toLowerCase() || 'pending'}">
+            ${order.status || 'PENDING'}
+          </span>
+        </div>
+        
+        <div class="order-body">
+          ${renderProgressTracker(order.status)}
+          
+          <div class="order-items">
+            ${order.items?.map(item => `
+              <div class="order-item">
+                <img src="${item.productImage || 'https://via.placeholder.com/70'}" 
+                     alt="${item.productName}" 
+                     class="order-item-image">
+                <div class="order-item-details">
+                  <div class="order-item-name">${item.productName}</div>
+                  <div class="order-item-qty">Qty: ${item.quantity}</div>
+                </div>
+                <div class="order-item-price">$${formatPrice(item.totalPrice)}</div>
+              </div>
+            `).join('') || '<p class="text-muted">No items</p>'}
+          </div>
+        </div>
+        
+        <div class="order-footer">
+          <div>
+            ${order.trackingNumber ? `
+              <span class="text-muted me-2">Tracking:</span>
+              <span class="fw-medium">${order.trackingNumber}</span>
+            ` : ''}
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-muted">Total:</span>
+            <span class="order-total text-primary">$${formatPrice(order.total)}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    }
+
+    function renderProgressTracker(status) {
+      const steps = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+      const currentIndex = steps.indexOf(status?.toUpperCase()) || 0;
+
+      if (status?.toUpperCase() === 'CANCELLED') {
+        return `
+        <div class="alert alert-danger mb-3">
+          <i class="bi bi-x-circle me-2"></i>This order has been cancelled.
+        </div>
+      `;
+      }
+
+      return `
+      <div class="progress-tracker">
+        ${steps.map((step, index) => {
+        let stepClass = '';
+        if (index < currentIndex) stepClass = 'completed';
+        else if (index === currentIndex) stepClass = 'active';
+
+        const icons = {
+          PENDING: 'bi-clock',
+          CONFIRMED: 'bi-check-circle',
+          PROCESSING: 'bi-gear',
+          SHIPPED: 'bi-truck',
+          DELIVERED: 'bi-house-check'
+        };
+
+        return `
+            <div class="progress-step ${stepClass}">
+              <div class="step-icon">
+                <i class="bi ${icons[step]}"></i>
+              </div>
+              <div class="step-label">${step}</div>
+            </div>
+          `;
+      }).join('')}
+      </div>
+    `;
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return 'N/A';
+      return new Date(timestamp).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    function formatPrice(price) {
+      return Number(price || 0).toFixed(2);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const bgMap = { success: 'bg-success', error: 'bg-danger', info: 'bg-primary' };
+
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-white ${bgMap[type]} border-0`;
+      toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+      container.appendChild(toast);
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+      toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = themeToggle.querySelector('i');
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeIcon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+  </script>
+
 </body>
+
 </html>

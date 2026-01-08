@@ -1,122 +1,258 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Profile</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script type="module">
-    import { authorizedFetch } from '../js/app.js';
-    
-    let currentUser = null;
-    
-    async function loadProfile() {
-      try {
-        const res = await authorizedFetch('http://localhost:8082/api/user/me');
-        currentUser = await res.json();
-        
-        // Display current info
-        document.getElementById('email').innerText = currentUser.email;
-        document.getElementById('name').innerText = currentUser.displayName || 'Not set';
-        
-        // Populate edit form
-        document.getElementById('editName').value = currentUser.displayName || '';
-        document.getElementById('editEmail').value = currentUser.email;
-        
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        document.getElementById('errorMsg').textContent = 'Error loading profile. Please make sure you\'re logged in.';
-      }
-    }
-    
-    async function updateProfile(e) {
-      e.preventDefault();
-      
-      const updatedProfile = {
-        displayName: document.getElementById('editName').value,
-        email: document.getElementById('editEmail').value
-      };
-      
-      try {
-        const res = await authorizedFetch('http://localhost:8082/api/user/profile', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedProfile)
-        });
-        
-        if (res.ok) {
-          document.getElementById('successMsg').textContent = 'Profile updated successfully!';
-          document.getElementById('successMsg').classList.remove('d-none');
-          setTimeout(() => {
-            document.getElementById('successMsg').classList.add('d-none');
-          }, 3000);
-          
-          // Reload profile data
-          loadProfile();
-        } else {
-          throw new Error('Failed to update profile');
-        }
-      } catch (error) {
-        console.error('Error updating profile:', error);
-        document.getElementById('errorMsg').textContent = 'Error updating profile. Please try again.';
-      }
-    }
-    
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('editForm').addEventListener('submit', updateProfile);
-      loadProfile();
-    });
-  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile | BSMS</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Custom Styles -->
+  <link href="../css/styles.css" rel="stylesheet">
 </head>
-<body class="container py-4">
-  <div class="row">
-    <div class="col-md-8">
-      <h1>My Profile</h1>
-      
-      <div id="errorMsg" class="alert alert-danger d-none"></div>
-      <div id="successMsg" class="alert alert-success d-none"></div>
-      
-      <!-- Current Profile Display -->
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5>Current Profile Information</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-sm-3"><strong>Email:</strong></div>
-            <div class="col-sm-9" id="email">Loading...</div>
-          </div>
-          <div class="row mt-2">
-            <div class="col-sm-3"><strong>Display Name:</strong></div>
-            <div class="col-sm-9" id="name">Loading...</div>
-          </div>
-        </div>
+
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="../index.html">
+        <i class="bi bi-speedometer2"></i>
+        BSMS
+      </a>
+
+      <div class="d-flex align-items-center gap-2">
+        <a href="../index.html" class="btn btn-outline-primary">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+        <button id="themeToggle" class="theme-toggle">
+          <i class="bi bi-moon-fill"></i>
+        </button>
       </div>
-      
-      <!-- Edit Profile Form -->
-      <div class="card">
-        <div class="card-header">
-          <h5>Edit Profile</h5>
-        </div>
-        <div class="card-body">
-          <form id="editForm">
-            <div class="mb-3">
-              <label for="editEmail" class="form-label">Email</label>
-              <input type="email" class="form-control" id="editEmail" readonly>
-              <div class="form-text">Email cannot be changed as it's linked to your Google account.</div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="container py-5">
+    <div class="row g-4 justify-content-center">
+      <!-- Login Required -->
+      <div id="loginRequired" class="col-12 text-center py-5">
+        <i class="bi bi-person-lock display-1 text-muted"></i>
+        <h3 class="mt-4">Login Required</h3>
+        <p class="text-muted mb-4">Please sign in to view your profile.</p>
+        <a href="../index.html" class="btn btn-primary">Sign In</a>
+      </div>
+
+      <!-- Profile Content -->
+      <div id="profileContent" class="col-lg-8 d-none">
+        <div class="card border-0 shadow-lg rounded-2xl overflow-hidden">
+          <div class="card-header bg-gradient-primary text-white p-5 text-center position-relative">
+            <div class="position-relative d-inline-block">
+              <img id="profileImage" src="" alt="Profile" class="rounded-circle border border-4 border-white shadow-md"
+                width="120" height="120" style="object-fit: cover;">
             </div>
-            
-            <div class="mb-3">
-              <label for="editName" class="form-label">Display Name</label>
-              <input type="text" class="form-control" id="editName" placeholder="Enter your display name">
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Update Profile</button>
-            <a href="../index.html" class="btn btn-secondary">Back to Home</a>
-          </form>
+            <h2 class="mt-3 fw-bold" id="profileName">User Name</h2>
+            <p class="mb-0 opacity-75" id="profileEmail">user@example.com</p>
+          </div>
+
+          <div class="card-body p-4 p-md-5">
+            <form id="profileForm">
+              <h5 class="mb-4 text-primary fw-bold"><i class="bi bi-person-lines-fill me-2"></i>Personal Information
+              </h5>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Display Name</label>
+                  <input type="text" class="form-control" id="displayName" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email Address</label>
+                  <input type="email" class="form-control" id="email" readonly disabled>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone Number</label>
+                  <input type="tel" class="form-control" id="phoneNumber" placeholder="Add phone number">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Account Created</label>
+                  <input type="text" class="form-control" id="createdAt" readonly disabled>
+                </div>
+              </div>
+
+              <hr class="my-5">
+
+              <h5 class="mb-4 text-primary fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Default Shipping Address</h5>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Street Address</label>
+                  <input type="text" class="form-control" id="streetAddress">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">City</label>
+                  <input type="text" class="form-control" id="city">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Postal Code</label>
+                  <input type="text" class="form-control" id="postalCode">
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-3 mt-5">
+                <button type="button" class="btn btn-outline-danger" id="logoutBtn">
+                  <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                </button>
+                <button type="submit" class="btn btn-primary px-4">
+                  <i class="bi bi-save me-2"></i>Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, getIdToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCeQB04PkgVJ7lXveCMF0g83uIJtZr49wA",
+      authDomain: "bsms-project.firebaseapp.com",
+      projectId: "bsms-project",
+      storageBucket: "bsms-project.appspot.com",
+      messagingSenderId: "889312176803",
+      appId: "1:889312176803:web:a1aa50b15058ffd7f66d16"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const API_BASE_URL = 'http://localhost:8080/api/v2';
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('loginRequired').classList.add('d-none');
+        document.getElementById('profileContent').classList.remove('d-none');
+        loadProfile(user);
+      } else {
+        document.getElementById('loginRequired').classList.remove('d-none');
+        document.getElementById('profileContent').classList.add('d-none');
+      }
+    });
+
+    async function loadProfile(user) {
+      // Basic info from Auth
+      document.getElementById('profileName').textContent = user.displayName || 'User';
+      document.getElementById('profileEmail').textContent = user.email;
+      document.getElementById('profileImage').src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}`;
+
+      document.getElementById('displayName').value = user.displayName || '';
+      document.getElementById('email').value = user.email || '';
+      document.getElementById('createdAt').value = new Date(user.metadata.creationTime).toLocaleDateString();
+
+      // Fetch extended profile from backend
+      try {
+        const token = await getIdToken(user, true);
+        const res = await fetch(`${API_BASE_URL}/user/profile/${user.uid}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Populate fields if available in backend
+          if (data.phoneNumber) document.getElementById('phoneNumber').value = data.phoneNumber;
+
+          // Populate address if available
+          const address = data.addresses?.find(a => a.defaultAddress) || data.addresses?.[0];
+          if (address) {
+            document.getElementById('streetAddress').value = address.street || '';
+            document.getElementById('city').value = address.city || '';
+            document.getElementById('postalCode').value = address.postalCode || '';
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load extended profile', e);
+      }
+    }
+
+    // Save Changes
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.submitter;
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+      try {
+        const token = await getIdToken(currentUser, true);
+
+        const payload = {
+          id: currentUser.uid,
+          email: currentUser.email,
+          displayName: document.getElementById('displayName').value,
+          phoneNumber: document.getElementById('phoneNumber').value,
+          addresses: [{
+            street: document.getElementById('streetAddress').value,
+            city: document.getElementById('city').value,
+            postalCode: document.getElementById('postalCode').value,
+            defaultAddress: true
+          }]
+        };
+
+        const res = await fetch(`${API_BASE_URL}/user/profile`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert('Profile saved successfully!');
+        } else {
+          throw new Error('Failed to save');
+        }
+
+      } catch (error) {
+        alert('Error saving profile: ' + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = '../index.html';
+    });
+
+    // Theme
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    themeToggle.onclick = () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    };
+  </script>
+
 </body>
+
 </html>
